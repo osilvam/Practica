@@ -1,0 +1,8 @@
+example/
+*.o
+*.txt
+doc/
+V-REP_PRO_EDU*/
+*_old/
+prueba*.*
+*.avi
