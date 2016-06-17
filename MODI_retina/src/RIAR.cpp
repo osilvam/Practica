@@ -7,16 +7,16 @@ int main(int argc, char* argv[])
 {
 	srand (time(0));    
 
+    if(argc < 4)
+    {
+        cerr << "ERROR: The number of arguments is incorrect" << endl << "Enter:\targ_1 = user_definition_file\t arg_2 = genetic_encoding_file\t arg_3 = port_number";
+        return -1;
+    }
+
     SimFiles * simfile = new SimFiles();
 	Fitness * fitness = new Fitness();
-	RobotVREP * vrep = new RobotVREP(true,19998);
-    Retina * retina = new Retina();
-    
-    if(argc < 3)
-	{
-		cerr << "ERROR: The number of arguments is incorrect" << endl << "Enter:\targ_1 = user_definition_file\t arg_2 = genetic_encoding_file";
-		return -1;
-	}
+	RobotVREP * vrep = new RobotVREP(true, atoi(argv[3]));  
+    Retina * retina = new Retina();  
 
 	// ============= VREP INITIALIZATIONS ============= //
     
@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
     vrep->addObject(Modi);
 
     vector < Object * > cubes;
-    vector < CollisionObject * > collisionableCubes;  
 
     // Set random position of Obstacles
 
@@ -48,29 +47,24 @@ int main(int argc, char* argv[])
         {            
             if(9*cp_y + cp_x != 40)
             {
-                stringstream sstm1, sstm2;
+                stringstream sstm1;
                 sstm1 << "Obstacle" << 9*cp_y+cp_x<< "#";
-                sstm2 << "Collision" << 9*cp_y+cp_x<< "#";
 
                 Object * obstacle = new Object((char*)sstm1.str().c_str());
-                CollisionObject * collisionObstacle = new CollisionObject((char*)sstm2.str().c_str());
                 vrep->addObject(obstacle);
-                vrep->addCollisionObject(collisionObstacle);
 
                 double rand1 = rand()%201 - 100;
                 double rand2 = rand()%201 - 100;
 
                 vector < double > position;
 
-                position.push_back(x0 + rand1/100*.20);
-                position.push_back(y0 + rand2/100*.20);
+                position.push_back(x0 + rand1/100*.10);
+                position.push_back(y0 + rand2/100*.10);
                 position.push_back(0.05);
 
                 vrep->setObjectPosition(obstacle, position);
 
                 cubes.push_back(obstacle);
-                collisionableCubes.push_back(collisionObstacle);
-
             }
 
             x0 = x0 + 0.5;
@@ -91,6 +85,10 @@ int main(int argc, char* argv[])
 	// ================================================ //
 	
     namedWindow( "Display window", WINDOW_AUTOSIZE ); // Create a window for display.
+
+    int generationFinalChampion = 0;
+    int populationFinalChampion = 0;
+    double generationFinalChampionFitness = 0.0;
 
 	for(int g = 0; g < population.GENERATIONS; g++)
 	{
@@ -116,8 +114,8 @@ int main(int argc, char* argv[])
 
             vector < double > position, orientation;
 
-            position.push_back(rand1/100*.20);
-            position.push_back(rand2/100*.20);
+            position.push_back(rand1/100*.30);
+            position.push_back(rand2/100*.30);
             position.push_back(0.02672);
 
             orientation.push_back(0);
@@ -139,15 +137,16 @@ int main(int argc, char* argv[])
             video_name << "G" << g << "P" << p;
             vrep->changeVideoName((char *)video_name.str().c_str(), simx_opmode_oneshot_wait);
 
+            simfile->openRobotMovementFile(g, p);
+            simfile->openRobotMotorVelocityFile(g, p);
+
             vrep->startSimulation(simx_opmode_oneshot_wait);
 
-            timeval tv1, tv2;
-            int iter = 0;
-			
+            timeval tv1, tv2;		
             gettimeofday(&tv1, NULL);            
 
 			while(sim_time < TIME_SIMULATION)
-			{                
+			{            
                 image = vrep->getVisionSensorImage(visionSensor);  
                 frameRGB.data = image;
                 flip(frameRGB, frameRGB, 0);
@@ -159,8 +158,8 @@ int main(int argc, char* argv[])
                 tmp = retina->GetImg(frame);
 
                 resize(tmp, frame, Size(0,0) , 6.0, 6.0, (int)INTER_NEAREST );
-                //imshow( "Display window", frame );
-                //waitKey(10);
+                imshow( "Display window", frame );
+                waitKey(10);
 
                 for(int i = 0; i < NY; i++)
                 {
@@ -186,9 +185,13 @@ int main(int argc, char* argv[])
                 vrep->setJointTargetVelocity(rightWheel,-rightVel);
                 vrep->setJointTargetVelocity(leftWheel,leftVel);
 
-                fitness->measuringValues(vrep->getObjectPosition(centerDummy), rightVel, leftVel);
+                position = vrep->getObjectPosition(centerDummy);
+                orientation = vrep->getObjectOrientation(centerDummy);
 
-                iter++;
+                simfile->addRobotMovementFile(position, orientation.at(2));
+                simfile->addRobotMotorVelocityFile(rightVel, leftVel);
+
+                fitness->measuringValues(position, rightVel, leftVel);                
 
                 usleep(DELTA_TIME);
                 sim_time += DELTA_TIME;
@@ -197,19 +200,17 @@ int main(int argc, char* argv[])
 			vrep->stopSimulation(simx_opmode_oneshot_wait);
 
             gettimeofday(&tv2, NULL);
-            long int simulationtime = ((tv2.tv_sec - tv1.tv_sec)*1000000L + tv2.tv_usec) - tv1.tv_usec;            
+            long int simulationtime = ((tv2.tv_sec - tv1.tv_sec)*1000000L + tv2.tv_usec) - tv1.tv_usec;   
+
+            simfile->closeRobotMovementFile();
+            simfile->closeRobotMotorVelocityFile();       
 						
             population.organisms.at(p).fitness = fitness->calculateFitness();
-            simfile->addFileResults(fitness, g, p);
-
-            stringstream organism_filename;
-            organism_filename << "NEAT_organisms/G" << g << "P" << p << ".txt";
-            population.organisms.at(p).save((char *)organism_filename.str().c_str());
+            simfile->addFileResults(fitness->getFitness(), g, p);
 
 			clog << "=======  G" << g << " P" << p << "  =======  " << endl;
             clog << "Fitness:\t" << fitness->getFitness() << endl;
-            clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl;
-            clog <<"# iteraciones:\t" << iter << endl << endl;
+            clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl << endl;            
 
             message2 << "FITNESS : " << fitness->getFitness();
             vrep->addStatusbarMessage((char*)message2.str().c_str());
@@ -222,23 +223,36 @@ int main(int argc, char* argv[])
 		}
 
         stringstream generation_champion_filename;
-        generation_champion_filename << "NEAT_organisms/Champion_G" << g << ".txt";
+        generation_champion_filename << "NEAT_organisms/Champion_G" << g << "P" << generationChampion << ".txt";
         population.organisms.at(generationChampion).save((char *)generation_champion_filename.str().c_str());
 
         simfile->addFileChampion(generationChampionFitness,g);
+        simfile->addFileFitness(fitness->getGenerationFitness(), g);
 
-		population.epoch();
+		population.epoch();        
 
-        simfile->addFileFitness(fitness, g);
+        if(generationFinalChampionFitness < generationChampionFitness)
+        {
+            generationFinalChampion = g;
+            populationFinalChampion = generationChampion;
+            generationFinalChampionFitness = generationChampionFitness;
+        }
 	}
-	
+
+    stringstream cp_champion_filename;
+    
+    cp_champion_filename << "cp .NEAT_organisms/Champion_G" << generationFinalChampion << "P" << populationFinalChampion << ".txt ./NEAT_organisms/Champion.txt";
+    
+    if(system((char*)cp_champion_filename.str().c_str()) == -1)
+    {
+        cerr << "TRAIN ERROR:\tFailed to copy the Champion Organism File" << endl;
+    }	
 
     clog << "Fitness champion: " << population.fitness_champion << "\n\n"<< endl;
 
 	delete(vrep);
 	delete(simfile);
 	delete(fitness);
-    delete(retina);
 	
 	return(0);
 }

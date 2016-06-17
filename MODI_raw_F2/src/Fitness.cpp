@@ -21,7 +21,7 @@ void Fitness::measuringValues(vector < double > position, double rightVel, doubl
     if( (rightVel > 0.0) && (leftVel > 0.0) ) aux1 = 1;
     else aux1 = 0;
 
-    if (!collision)
+	if (!collision)
     {
     	robot_position.push_back(position);
 		robot_tail.push_back(aux1);	
@@ -31,12 +31,12 @@ void Fitness::measuringValues(vector < double > position, double rightVel, doubl
     	robot_position.pop_back();
     	robot_tail.pop_back();
     }
-	
 }
 
 double Fitness::calculateFitness()
 {
-    for(int i = 1; i < (int)robot_position.size(); i++)    {
+    for(int i = 1; i < (int)robot_position.size(); i++)
+    {
 
         double x0 = robot_position.at(i - 1).at(0);
         double x1 = robot_position.at(i).at(0);

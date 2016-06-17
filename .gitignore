@@ -27,3 +27,21 @@
 *.exe
 *.out
 *.app
+
+#opencv
+/opencv
+
+# V-REP simulator
+/V-REP*
+
+# RobotLib
+/RobotLib
+
+# NEAT
+/NEAT
+
+# C/C++ Objects
+*.o
+
+#saveTrains
+*.zip

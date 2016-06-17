@@ -5,16 +5,16 @@ preferred direction. The algotithm uses NEAT to evolve. */
 
 int main(int argc, char* argv[])
 {
-    srand (time(0));    
-
-    RobotVREP * vrep = new RobotVREP();
-    Retina * retina = new Retina();
+    srand (time(0));        
     
-    if(argc < 2)
+    if(argc < 3)
     {
-        cerr << "ERROR: The number of arguments is incorrect" << endl << "Enter:\targ_1 = genetic_encoding_file";
+        cerr << "ERROR: The number of arguments is incorrect" << endl << "Enter:\targ_1 = genetic_encoding_file\t arg_3 = port_number";
         return -1;
     }
+
+    RobotVREP * vrep = new RobotVREP(false, atoi(argv[2])); 
+    Retina * retina = new Retina();  
 
     // ============= VREP INITIALIZATIONS ============= //
     
@@ -29,8 +29,7 @@ int main(int argc, char* argv[])
     Object * Modi = new Object((char*)"MODI");
     vrep->addObject(Modi);
 
-    vector < Object * > cubes;
-    vector < CollisionObject * > collisionableCubes;  
+    vector < Object * > cubes;    
 
     // Set random position of Obstacles
 
@@ -44,28 +43,24 @@ int main(int argc, char* argv[])
         {            
             if(9*cp_y + cp_x != 40)
             {
-                stringstream sstm1, sstm2;
+                stringstream sstm1;
                 sstm1 << "Obstacle" << 9*cp_y+cp_x<< "#";
-                sstm2 << "Collision" << 9*cp_y+cp_x<< "#";
 
                 Object * obstacle = new Object((char*)sstm1.str().c_str());
-                CollisionObject * collisionObstacle = new CollisionObject((char*)sstm2.str().c_str());
                 vrep->addObject(obstacle);
-                vrep->addCollisionObject(collisionObstacle);
 
                 double rand1 = rand()%201 - 100;
                 double rand2 = rand()%201 - 100;
 
                 vector < double > position;
 
-                position.push_back(x0 + rand1/100*.20);
-                position.push_back(y0 + rand2/100*.20);
+                position.push_back(x0 + rand1/100*.10);
+                position.push_back(y0 + rand2/100*.10);
                 position.push_back(0.05);
 
                 vrep->setObjectPosition(obstacle, position);
 
                 cubes.push_back(obstacle);
-                collisionableCubes.push_back(collisionObstacle);
 
             }
 
@@ -76,6 +71,7 @@ int main(int argc, char* argv[])
     }
 
     // ================================================ //
+
 
     // ========== NEAT INITIALIZATIONS =========== //
 
@@ -100,8 +96,8 @@ int main(int argc, char* argv[])
 
     vector < double > position, orientation;
 
-    position.push_back(rand1/100*.20);
-    position.push_back(rand2/100*.20);
+    position.push_back(rand1/100*.30);
+    position.push_back(rand2/100*.30);
     position.push_back(0.02672);
 
     orientation.push_back(0);
@@ -162,7 +158,6 @@ int main(int argc, char* argv[])
     vrep->stopSimulation(simx_opmode_oneshot_wait);
 
     delete(vrep);
-    delete(retina);
     
     return(0);
 }

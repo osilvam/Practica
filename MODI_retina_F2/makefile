@@ -9,31 +9,15 @@ DATE = `date +'%F--%T'`
 SPATH = ./saveTrains/$(DATE)
 CNAME = saveTrains.zip
 
-all: RIAR.o Champion.o RetinaFilter.o CalcFunctions.o Fitness.o SimFiles.o Retina.o
+all: CalcFunctions.o Fitness.o SimFiles.o Retina.o
 	@mkdir -p bin/NEAT_organisms
 	@rm -f ./bin/NEAT_organisms/*
-	@echo "Linking all objects to ./bin/RIAR"
-	@$(CC) $(CFLAGS) ./objects/Fitness.o ./objects/Retina.o ./objects/SimFiles.o ./objects/CalcFunctions.o ./objects/RIAR.o  -o ./bin/$(EXECUTABLE1) $(LDFLAGS)
-	@echo "Linking all objects to ./bin/Champion"
-	@$(CC) $(CFLAGS) ./objects/Fitness.o ./objects/Retina.o ./objects/SimFiles.o ./objects/CalcFunctions.o ./objects/Champion.o  -o ./bin/$(EXECUTABLE2) $(LDFLAGS)
-	@echo "Linking all objects to ./bin/RetinaFilter"
-	@$(CC) $(CFLAGS) ./objects/Fitness.o ./objects/Retina.o ./objects/SimFiles.o ./objects/CalcFunctions.o ./objects/RetinaFilter.o  -o ./bin/$(EXECUTABLE3) $(LDFLAGS)
-	
-
-RIAR.o: RIAR.cpp 
-	@mkdir -p objects
-	@echo "Compiling RIAR.cpp to RIAR.o"
-	@$(CC) $(CFLAGS) -c ./src/RIAR.cpp -o ./objects/RIAR.o
-
-Champion.o: Champion.cpp 
-	@mkdir -p objects
-	@echo "Compiling Champion.cpp to Champion.o"
-	@$(CC) $(CFLAGS) -c ./src/Champion.cpp -o ./objects/Champion.o
-
-RetinaFilter.o: RetinaFilter.cpp 
-	@mkdir -p objects
-	@echo "Compiling RetinaFilter.cpp to RetinaFilter.o"
-	@$(CC) $(CFLAGS) -c ./src/RetinaFilter.cpp -o ./objects/RetinaFilter.o
+	@echo "Linking all objects to ./bin/$(EXECUTABLE1)"
+	@$(CC) $(CFLAGS) ./src/RIAR.cpp ./objects/Retina.o ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE1) $(LDFLAGS)
+	@echo "Linking all objects to ./bin/$(EXECUTABLE2)"
+	@$(CC) $(CFLAGS) ./src/Champion.cpp ./objects/Retina.o ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE2) $(LDFLAGS)
+	@echo "Linking all objects to ./bin/$(EXECUTABLE3)"
+	@$(CC) $(CFLAGS) ./src/RetinaFilter.cpp ./objects/Retina.o -o ./bin/$(EXECUTABLE3) $(LDFLAGS)
 
 CalcFunctions.o: CalcFunctions.cpp 
 	@mkdir -p objects
@@ -67,10 +51,13 @@ clean:
 	@zip -r $(CNAME) ./saveTrains/*
 	@rm -f -R ./saveTrains
 
-run:
-	@rm -f ./bin/NEAT_organisms/*
+runMODI:
 	@rm -f ./bin/*.txt
-	@cd ./bin; ./RIAR user_def GeneticEncoding1024
+	@rm -f -R ./bin/NEAT_organisms/*
+	@cd ./bin; ./$(EXECUTABLE1) user_def GeneticEncoding1024
+
+runCHAMPION:
+	@cd ./bin; ./$(EXECUTABLE2) ./NEAT_organisms/Champion.txt
 
 save:
 	@mkdir -p $(SPATH); cp -R ./bin/* $(SPATH);

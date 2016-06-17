@@ -29,6 +29,7 @@ using namespace ANN_USM;
 #define NX 32 // X image resolution
 #define NY 32 // Y image resolution
 
+//#define TIME_SIMULATION 10000 // milliseconds
 #define TIME_SIMULATION 20000000 // microseconds
 #define DELTA_TIME 50000 // microseconds
 
