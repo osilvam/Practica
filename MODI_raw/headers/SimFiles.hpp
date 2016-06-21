@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cstring>
 #include <vector>
+#include <stdlib.h> 
 #include "CalcFunctions.hpp"
 
 using namespace std;

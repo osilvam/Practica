@@ -5,17 +5,18 @@ VPATH = ./src ./headers
 CC = g++ -O3 `pkg-config --cflags --libs opencv` 
 CFLAGS = -g -Wall -I./src -I./headers  -DNON_MATLAB_PARSING -DMAX_EXT_API_CONNECTIONS=255 
 LDFLAGS = -lpthread -L. -lhyperneat -lrobotlib -lneat `pkg-config --libs opencv`
-DATE = `date +'%F--%T'`
-SPATH = ./saveTrains/$(DATE)
-CNAME = saveTrains.zip
+DATE = `date +'%F--%T'` 
+CURRENTFOLDER = $(notdir $(shell pwd))
+SPATH = ./saveTrains_$(CURRENTFOLDER)/$(DATE)
+CNAME = ../saveTrains.zip
 
 all: CalcFunctions.o Fitness.o SimFiles.o Retina.o
 	@mkdir -p bin/NEAT_organisms
 	@rm -f ./bin/NEAT_organisms/*
 	@echo "Linking all objects to ./bin/$(EXECUTABLE1)"
-	@$(CC) $(CFLAGS) ./src/RIAR.cpp ./objects/Retina.o ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE1) $(LDFLAGS)
+	@$(CC) $(CFLAGS) ./src/RIAR.cpp ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE1) $(LDFLAGS)
 	@echo "Linking all objects to ./bin/$(EXECUTABLE2)"
-	@$(CC) $(CFLAGS) ./src/Champion.cpp ./objects/Retina.o ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE2) $(LDFLAGS)
+	@$(CC) $(CFLAGS) ./src/Champion.cpp ./objects/Fitness.o ./objects/SimFiles.o ./objects/CalcFunctions.o -o ./bin/$(EXECUTABLE2) $(LDFLAGS)
 	@echo "Linking all objects to ./bin/$(EXECUTABLE3)"
 	@$(CC) $(CFLAGS) ./src/RetinaFilter.cpp ./objects/Retina.o -o ./bin/$(EXECUTABLE3) $(LDFLAGS)
 
@@ -47,11 +48,17 @@ clean:
 	@rm -f ./bin/$(EXECUTABLE3)
 	@rm -f -R ./bin/NEAT_organisms
 	@rm -f -R ./bin/videoRecorder*
+	@rm -f -R ./bin/simulation_files*
 	@rm -f ./bin/*.txt
-	@zip -r $(CNAME) ./saveTrains/*
-	@rm -f -R ./saveTrains
+	@if [ -d saveTrains* ] ; \
+	then \
+	    zip -r $(CNAME) ./saveTrains* ; \
+		rm -f -R ./saveTrains* ; \
+	fi;
+	
+	
 
-runMODI:
+runRIAR:
 	@rm -f ./bin/*.txt
 	@rm -f -R ./bin/NEAT_organisms/*
 	@cd ./bin; ./$(EXECUTABLE1) user_def GeneticEncoding1024
@@ -60,6 +67,7 @@ runCHAMPION:
 	@cd ./bin; ./$(EXECUTABLE2) ./NEAT_organisms/Champion.txt
 
 save:
+	bash DeleteUnusefulFiles.bash
 	@mkdir -p $(SPATH); cp -R ./bin/* $(SPATH);
 
 

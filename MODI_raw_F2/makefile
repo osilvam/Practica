@@ -5,9 +5,10 @@ VPATH = ./src ./headers
 CC = g++ -O3 `pkg-config --cflags --libs opencv` 
 CFLAGS = -g -Wall -I./src -I./headers  -DNON_MATLAB_PARSING -DMAX_EXT_API_CONNECTIONS=255 
 LDFLAGS = -lpthread -L. -lhyperneat -lrobotlib -lneat `pkg-config --libs opencv`
-DATE = `date +'%F--%T'`
-SPATH = ./saveTrains/$(DATE)
-CNAME = saveTrains.zip
+DATE = `date +'%F--%T'` 
+CURRENTFOLDER = $(notdir $(shell pwd))
+SPATH = ./saveTrains_$(CURRENTFOLDER)/$(DATE)
+CNAME = ../saveTrains.zip
 
 all: CalcFunctions.o Fitness.o SimFiles.o Retina.o
 	@mkdir -p bin/NEAT_organisms
@@ -47,11 +48,17 @@ clean:
 	@rm -f ./bin/$(EXECUTABLE3)
 	@rm -f -R ./bin/NEAT_organisms
 	@rm -f -R ./bin/videoRecorder*
+	@rm -f -R ./bin/simulation_files*
 	@rm -f ./bin/*.txt
-	@zip -r $(CNAME) ./saveTrains/*
-	@rm -f -R ./saveTrains
+	@if [ -d saveTrains* ] ; \
+	then \
+	    zip -r $(CNAME) ./saveTrains* ; \
+		rm -f -R ./saveTrains* ; \
+	fi;
+	
+	
 
-runMODI:
+runRIAR:
 	@rm -f ./bin/*.txt
 	@rm -f -R ./bin/NEAT_organisms/*
 	@cd ./bin; ./$(EXECUTABLE1) user_def GeneticEncoding1024
@@ -60,5 +67,7 @@ runCHAMPION:
 	@cd ./bin; ./$(EXECUTABLE2) ./NEAT_organisms/Champion.txt
 
 save:
+	bash DeleteUnusefulFiles.bash
 	@mkdir -p $(SPATH); cp -R ./bin/* $(SPATH);
+
 

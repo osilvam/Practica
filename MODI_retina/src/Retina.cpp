@@ -75,7 +75,7 @@ Mat Retina::GetImg(Mat img)
     out  = out1;
     out.convertTo(out, CV_8U);
 
-    cout << 1.0*(img.rows*img.rows*5/2-k)/(img.rows*img.rows*5/2)*100 << "%"<< endl;
+    //cout << 1.0*(img.rows*img.rows*5/2-k)/(img.rows*img.rows*5/2)*100 << "%"<< endl;
 
     //img_out = reconstruct_DoG(out, img.cols, img.rows, int fs1, double sigma_inner);
 

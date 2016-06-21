@@ -1,9 +1,9 @@
 function [y] = FitnessPlot()
 x = '../bin/fitness.txt';
 A = importdata(x, '\t');
-g = A(:,1);
-m = A(:,2);
-dst = A(:,3);
+g = A.data(:,1);
+m = A.data(:,2);
+dst = A.data(:,3);
 
 figure
 hold on

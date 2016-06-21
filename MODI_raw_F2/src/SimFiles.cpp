@@ -12,6 +12,21 @@ SimFiles::SimFiles()
 	file_fitness << "Generation\tPopulation\tFitness" << endl;
 	file_results << "Generation\tFitness Mean\tFitness Stddesviation" << endl;
 	file_champions << "Generation\tFitness" << endl;
+
+	if(system("mkdir -p simulation_files") == -1)
+	{
+		cerr << "SIMFILES ERROR:\tFailed to create folder 'simulation_files'" << endl;
+	}
+
+	if(system("mkdir -p simulation_files/movement") == -1)
+	{
+		cerr << "SIMFILES ERROR:\tFailed to create folder 'simulation_files/movement'" << endl;
+	}
+
+	if(system("mkdir -p simulation_files/motorVelocity") == -1)
+	{
+		cerr << "SIMFILES ERROR:\tFailed to create folder 'simulation_files/motorVelocity'" << endl;
+	}
 }
 
 SimFiles::~SimFiles()
@@ -45,7 +60,7 @@ void SimFiles::addFileChampion(double fitness, int generation)
 void SimFiles::openRobotMovementFile(int generation, int population)
 {
 	stringstream file_name;
-	file_name << "movement_G" << generation << "P" << population << ".txt";
+	file_name << "simulation_files/movement/movement_G" << generation << "P" << population << ".txt";
 	file_robotPosition.open((char*)file_name.str().c_str());
 
 	file_robotPosition << "Position in X\tPosition in Y\tOrientation" << endl;
@@ -68,7 +83,7 @@ void SimFiles::addRobotMovementFile(vector < double > position, double orientati
 void SimFiles::openRobotMotorVelocityFile(int generation, int population)
 {
 	stringstream file_name;
-	file_name << "motorVelocity" << generation << "P" << population << ".txt";
+	file_name << "simulation_files/motorVelocity/motorVelocity_G" << generation << "P" << population << ".txt";
 	file_robotMotorVelocity.open((char*)file_name.str().c_str());
 
 	file_robotMotorVelocity << "Right Velocity\tLeft Velocity" << endl;

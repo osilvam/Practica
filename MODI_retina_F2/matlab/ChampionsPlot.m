@@ -1,8 +1,8 @@
 function [y] = ChampionsPlot()
 x = '../bin/champions.txt';
 A = importdata(x, '\t');
-g = A(:,1);
-f = A(:,2);
+g = A.data(:,1);
+f = A.data(:,2);
 
 figure
 hold on

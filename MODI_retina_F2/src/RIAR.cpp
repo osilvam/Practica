@@ -33,9 +33,9 @@ int main(int argc, char* argv[])
     vrep->addObject(centerDummy);
     vrep->addObject(Modi);
 
-    CollisionObject * chasis = new CollisionObject((char*)"Collision81#");
-    CollisionObject * rueda1 = new CollisionObject((char*)"Collision82#");
-    CollisionObject * rueda2 = new CollisionObject((char*)"Collision83#");
+    CollisionObject * chasis = new CollisionObject((char*)"Collision_MODI_1#");
+    CollisionObject * rueda1 = new CollisionObject((char*)"Collision_MODI_2#");
+    CollisionObject * rueda2 = new CollisionObject((char*)"Collision_MODI_3#");
     vrep->addCollisionObject(chasis);
     vrep->addCollisionObject(rueda1);
     vrep->addCollisionObject(rueda2);
