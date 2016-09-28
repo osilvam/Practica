@@ -1,5 +1,5 @@
 function [y] = FitnessPlot()
-x = '../bin/fitness.txt';
+x = '../bin/simulation_files/fitness.txt';
 A = importdata(x, '\t');
 g = A.data(:,1);
 m = A.data(:,2);

@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
     }
 
     RobotVREP * vrep = new RobotVREP(false, atoi(argv[2])); 
-    Retina * retina = new Retina();  
+    Retina * retina = new Retina(); 
 
     // ============= VREP INITIALIZATIONS ============= //
     
@@ -37,9 +37,9 @@ int main(int argc, char* argv[])
 
     for(int cp_y = 0; cp_y < 9; cp_y++)
     {   
-        double x0 = -2;
+        double x0 = -2 + 0.25*(cp_y%2);
 
-        for(int cp_x = 0; cp_x < 9; cp_x++)
+        for(int cp_x = 0; cp_x < 8 + (cp_y + 1)%2; cp_x++)
         {            
             if(9*cp_y + cp_x != 40)
             {
@@ -61,7 +61,6 @@ int main(int argc, char* argv[])
                 vrep->setObjectPosition(obstacle, position);
 
                 cubes.push_back(obstacle);
-
             }
 
             x0 = x0 + 0.5;
@@ -96,9 +95,9 @@ int main(int argc, char* argv[])
 
     vector < double > position, orientation;
 
-    position.push_back(rand1/100*.30);
-    position.push_back(rand2/100*.30);
-    position.push_back(0.02672);
+    position.push_back(rand1/100*.10);
+    position.push_back(rand2/100*.10);
+    position.push_back(0.03011);
 
     orientation.push_back(0);
     orientation.push_back(0);
@@ -135,23 +134,23 @@ int main(int argc, char* argv[])
             }
         }
         
-        input.at(NX*NY) = (double)rightVel/8;
-        input.at(NX*NY + 1) = (double)leftVel/8;
+        input.at(NX*NY) = (double)((2.0/(MAX_VEL - MIN_VEL))*(rightVel - MIN_VEL) - 1.0);
+        input.at(NX*NY + 1) = (double)((2.0/(MAX_VEL - MIN_VEL))*(leftVel - MIN_VEL) - 1.0);
 
         output = champion.eval(input);
 
         rightVel = output.at(0) + rightVel;
         leftVel = output.at(1) + leftVel;
 
-        if(rightVel > 8) rightVel = 8;
-        else if(rightVel < -8) rightVel = -8;
-        if(leftVel > 8) leftVel = 8;
-        else if(leftVel < -8) leftVel = -8;
+        if(rightVel > MAX_VEL) rightVel = MAX_VEL;
+        else if(rightVel < MIN_VEL) rightVel = MIN_VEL;
+        if(leftVel > MAX_VEL) leftVel = MAX_VEL;
+        else if(leftVel < MIN_VEL) leftVel = MIN_VEL;
 
         vrep->setJointTargetVelocity(rightWheel,-rightVel);
         vrep->setJointTargetVelocity(leftWheel,leftVel);
 
-        usleep(DELTA_TIME);
+        usleep(DELTA_TIME - EXECUTION_TIME);
         sim_time += DELTA_TIME;
     }            
 

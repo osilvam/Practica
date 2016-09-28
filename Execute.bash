@@ -1,10 +1,14 @@
-echo Escriba el nombre del experimento
+EXPERIMENTOPC=(MODI_raw MODI_raw_F2 MODI_retina MODI_retina_F2)
+
+echo Escriba el numero del experimento que desea realizar
 echo Opciones:
-echo -e ' \t ' MODI_raw
-echo -e ' \t ' MODI_raw_F2
-echo -e ' \t ' MODI_retina
-echo -e ' \t ' MODI_retina_F2
+echo -e ' \t ' 1.- MODI_raw
+echo -e ' \t ' 2.- MODI_raw_F2
+echo -e ' \t ' 3.- MODI_retina
+echo -e ' \t ' 4.- MODI_retina_F2
 read EXPERIMENT
+EXPERIMENT=${EXPERIMENTOPC[$((EXPERIMENT - 1))]}
+
 echo Seleccione la escena a usar '('1 ó 2')':
 read SCENE
 
@@ -22,10 +26,11 @@ if [ -d V-REP* ]
 	TTTN="../Scene"$SCENE"_FINAL.ttt"
 
 	cd V-REP*
-	chmod 755 MultiVrep.sh; bash ./MultiVrep.sh $PORT 1 $TTTN &>/dev/null &
+	chmod 755 MultiVrep.sh; 
+	PIDS=$(bash ./MultiVrep.sh $PORT 1 $TTTN &)
 	cd ..
-	sleep 5	
-	vrep=$(pgrep -n vrep)
+	sleep 2	
+	#vrep=$(pgrep -n vrep)
 else
 	echo ERROR: No existe la carpeta que contiene al simulador V-REP
 	echo V-REP puede ser descargado desde 'http://www.coppeliarobotics.com/downloads.html'
@@ -56,4 +61,4 @@ fi
 
 sleep 2
 
-kill -9 $vrep
+kill -9 $PIDS

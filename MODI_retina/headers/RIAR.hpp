@@ -30,7 +30,13 @@ using namespace ANN_USM;
 #define NY 32 // Y image resolution
 
 //#define TIME_SIMULATION 10000 // milliseconds
-#define TIME_SIMULATION 20000000 // microseconds
+#define TIME_SIMULATION 16000000 // microseconds
+#define TIME_INIT_MEASURING 1000000 // microseconds
+
 #define DELTA_TIME 50000 // microseconds
+#define EXECUTION_TIME 15000
+
+#define MAX_VEL 8 //rad/s
+#define MIN_VEL 0 //rad/s
 
 #endif

@@ -16,7 +16,9 @@ class Fitness
 	double fitness;
 	double distance;
 	vector < vector < double > > robot_position;
-	vector < double > robot_tail;
+	vector < double > robot_tail;	
+	vector < double > robot_rightVel;
+	vector < double > robot_leftVel;
 	vector < double > generation_fitness;
 
 public:

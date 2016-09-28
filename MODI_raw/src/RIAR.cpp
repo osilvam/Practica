@@ -13,9 +13,19 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    if(system((char*)"mkdir -p NEAT_organisms") == -1)
+    {
+        cerr << "TRAIN ERROR:\tFailed to create folder 'NEAT_organisms'" << endl;
+    }
+
+    if(system("rm -f NEAT_organisms/*") == -1)
+    {
+        cerr << "TRAIN ERROR:\tFailed to remove files inside of 'NEAT_organisms'" << endl;
+    }
+
     SimFiles * simfile = new SimFiles();
 	Fitness * fitness = new Fitness();
-	RobotVREP * vrep = new RobotVREP(true, atoi(argv[3]));   
+	RobotVREP * vrep = new RobotVREP(false, atoi(argv[3]));   
 
 	// ============= VREP INITIALIZATIONS ============= //
     
@@ -32,6 +42,12 @@ int main(int argc, char* argv[])
     vrep->addObject(centerDummy);
     vrep->addObject(Modi);
 
+    CollisionObject * foot1 = new CollisionObject((char*)"Collision_MODI_4#");
+    CollisionObject * foot2 = new CollisionObject((char*)"Collision_MODI_5#");
+    vrep->addCollisionObject(foot1);
+    vrep->addCollisionObject(foot2);
+    vector < CollisionObject * > foots = {foot1, foot2};
+
     vector < Object * > cubes;
 
     // Set random position of Obstacles
@@ -40,9 +56,9 @@ int main(int argc, char* argv[])
 
     for(int cp_y = 0; cp_y < 9; cp_y++)
     {   
-        double x0 = -2;
+        double x0 = -2 + 0.25*(cp_y%2);
 
-        for(int cp_x = 0; cp_x < 9; cp_x++)
+        for(int cp_x = 0; cp_x < 8 + (cp_y + 1)%2; cp_x++)
         {            
             if(9*cp_y + cp_x != 40)
             {
@@ -85,15 +101,15 @@ int main(int argc, char* argv[])
 	
     namedWindow( "Display window", WINDOW_AUTOSIZE ); // Create a window for display.
 
-    int generationFinalChampion = 0;
-    int populationFinalChampion = 0;
-    double generationFinalChampionFitness = 0.0;
+    int finalChampionGeneration = 0;
+    int finalChampionPopulation = 0;
+    double finalChampionFitness = 0.0;
 
 	for(int g = 0; g < population.GENERATIONS; g++)
 	{
 		fitness->resetGenerationValues();
 
-        int generationChampion = 0;
+        int generationChampionPopulation = 0;
         double generationChampionFitness = 0.0;
      
 		for(int p = 0; p < population.POPULATION_MAX; p++)
@@ -101,6 +117,8 @@ int main(int argc, char* argv[])
             fitness->resetPopulationValues();
 
             int sim_time = 0;
+            bool flag = true;
+            int flag_times = 0;
             double rightVel = 0.0;
             double leftVel = 0.0;
 
@@ -113,9 +131,9 @@ int main(int argc, char* argv[])
 
             vector < double > position, orientation;
 
-            position.push_back(rand1/100*.30);
-            position.push_back(rand2/100*.30);
-            position.push_back(0.02672);
+            position.push_back(rand1/100*.10);
+            position.push_back(rand2/100*.10);
+            position.push_back(0.03011);
 
             orientation.push_back(0);
             orientation.push_back(0);
@@ -134,17 +152,19 @@ int main(int argc, char* argv[])
             vrep->addStatusbarMessage((char*)message1.str().c_str());
 
             video_name << "G" << g << "P" << p;
-            vrep->changeVideoName((char *)video_name.str().c_str(), simx_opmode_oneshot_wait);
+            //vrep->changeVideoName((char *)video_name.str().c_str(), simx_opmode_oneshot_wait);
 
             simfile->openRobotMovementFile(g, p);
             simfile->openRobotMotorVelocityFile(g, p);
+            
+            clog << "=======  G" << g << " P" << p << "  =======  " << endl;
 
             vrep->startSimulation(simx_opmode_oneshot_wait);
 
             timeval tv1, tv2;		
             gettimeofday(&tv1, NULL);            
 
-			while(sim_time < TIME_SIMULATION)
+			while(sim_time < TIME_SIMULATION && flag)
 			{            
                 image = vrep->getVisionSensorImage(visionSensor);  
                 frameRGB.data = image;
@@ -166,31 +186,41 @@ int main(int argc, char* argv[])
                     }
                 }
                 
-                input.at(NX*NY) = (double)rightVel/8;
-                input.at(NX*NY + 1) = (double)leftVel/8;
+                input.at(NX*NY) = (double)((2.0/(MAX_VEL - MIN_VEL))*(rightVel - MIN_VEL) - 1.0);
+                input.at(NX*NY + 1) = (double)((2.0/(MAX_VEL - MIN_VEL))*(leftVel - MIN_VEL) - 1.0);
 
                 output = population.organisms.at(p).eval(input);
 
                 rightVel = output.at(0) + rightVel;
                 leftVel = output.at(1) + leftVel;
 
-                if(rightVel > 8) rightVel = 8;
-                else if(rightVel < -8) rightVel = -8;
-                if(leftVel > 8) leftVel = 8;
-                else if(leftVel < -8) leftVel = -8;
+                if(rightVel > MAX_VEL) rightVel = MAX_VEL;
+                else if(rightVel < MIN_VEL) rightVel = MIN_VEL;
+                if(leftVel > MAX_VEL) leftVel = MAX_VEL;
+                else if(leftVel < MIN_VEL) leftVel = MIN_VEL;
 
                 vrep->setJointTargetVelocity(rightWheel,-rightVel);
                 vrep->setJointTargetVelocity(leftWheel,leftVel);
 
-                position = vrep->getObjectPosition(centerDummy);
-                orientation = vrep->getObjectOrientation(centerDummy);
+                if(sim_time > TIME_INIT_MEASURING)
+                {
+                    position = vrep->getObjectPosition(centerDummy);
+                    orientation = vrep->getObjectOrientation(centerDummy);
 
-                simfile->addRobotMovementFile(position, orientation.at(2));
-                simfile->addRobotMotorVelocityFile(rightVel, leftVel);
+                    simfile->addRobotMovementFile((double)sim_time/1000000.0, position, orientation.at(2));
+                    simfile->addRobotMotorVelocityFile((double)sim_time/1000000.0, rightVel, leftVel);
 
-                fitness->measuringValues(position, rightVel, leftVel);                
+                    fitness->measuringValues(position, rightVel, leftVel);
 
-                usleep(DELTA_TIME);
+                    if (!vrep->readCollision(foots))
+                    {
+                        flag_times++;
+                        if(flag_times > 10) flag = false;
+                    }else
+                        flag_times = 0;
+                }                         
+
+                usleep(DELTA_TIME - EXECUTION_TIME);
                 sim_time += DELTA_TIME;
 			}            
 
@@ -200,52 +230,110 @@ int main(int argc, char* argv[])
             long int simulationtime = ((tv2.tv_sec - tv1.tv_sec)*1000000L + tv2.tv_usec) - tv1.tv_usec;   
 
             simfile->closeRobotMovementFile();
-            simfile->closeRobotMotorVelocityFile();       
-						
-            population.organisms.at(p).fitness = fitness->calculateFitness();
-            simfile->addFileResults(fitness->getFitness(), g, p);
+            simfile->closeRobotMotorVelocityFile();  
 
-			clog << "=======  G" << g << " P" << p << "  =======  " << endl;
-            clog << "Fitness:\t" << fitness->getFitness() << endl;
-            clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl << endl;            
+            if (flag)
+            {                
+                population.organisms.at(p).fitness = fitness->calculateFitness();             
+                simfile->addFileResults(fitness->getFitness(), g, p);
 
-            message2 << "FITNESS : " << fitness->getFitness();
-            vrep->addStatusbarMessage((char*)message2.str().c_str());
+                clog << "Fitness:\t" << fitness->getFitness() << endl;
+                clog << "Distance:\t" << fitness->getDistance() << endl;
+                clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl;
+                clog << endl;            
 
-            if(generationChampionFitness < fitness->getFitness())
-            {
-                generationChampion = p;
-                generationChampionFitness = fitness->getFitness();
+                message2 << "FITNESS : " << fitness->getFitness();
+                vrep->addStatusbarMessage((char*)message2.str().c_str());
+
+                if(generationChampionFitness < fitness->getFitness())
+                {
+                    generationChampionPopulation = p;
+                    generationChampionFitness = fitness->getFitness();
+                }
             }
+            else
+            {
+                clog << "OVERTURNING! The simulation has stopped" << endl;
+                population.organisms.at(p).fitness = FAILED_FITNESS;
+            }                
 		}
 
-        stringstream generation_champion_filename;
-        generation_champion_filename << "NEAT_organisms/Champion_G" << g << "P" << generationChampion << ".txt";
-        population.organisms.at(generationChampion).save((char *)generation_champion_filename.str().c_str());
+        simfile->addFileChampion(generationChampionFitness, g, generationChampionPopulation);
+        simfile->addFileFitness(fitness->getGenerationFitness(), g);        
 
-        simfile->addFileChampion(generationChampionFitness,g);
-        simfile->addFileFitness(fitness->getGenerationFitness(), g);
+        //////////////////////////// SAVE CHAMPION FILES /////////////////////////////////
+
+        stringstream generation_champion_filename;
+        generation_champion_filename << "NEAT_organisms/Champion_G" << g << "P" << generationChampionPopulation << ".txt";
+        population.organisms.at(generationChampionPopulation).save((char *)generation_champion_filename.str().c_str());
+
+        stringstream cp_gen_champion_movement, cp_gen_champion_motorVelocity;
+
+        cp_gen_champion_movement << "cp simulation_files/movement/movement_G" << g << "P" << generationChampionPopulation << ".txt ./simulation_files/movement/Champion_G" << g << "P" << generationChampionPopulation << ".txt";
+        cp_gen_champion_motorVelocity << "cp simulation_files/motorVelocity/motorVelocity_G" << g << "P" << generationChampionPopulation << ".txt ./simulation_files/motorVelocity/Champion_G" << g << "P" << generationChampionPopulation << ".txt";
+
+        if(system((char*)cp_gen_champion_movement.str().c_str()) == -1)
+        {
+            cerr << "TRAIN ERROR:\tFailed to copy the Champion movement File" << endl;
+        }
+        else
+        {
+            if(system("rm -f ./simulation_files/movement/movement_G*.txt") == -1)
+            {
+                cerr << "TRAIN ERROR:\tFailed to remove useless files" << endl;
+            }
+        }
+
+        if(system((char*)cp_gen_champion_motorVelocity.str().c_str()) == -1)
+        {
+            cerr << "TRAIN ERROR:\tFailed to copy the Champion motor velocity File" << endl;
+        }
+        else
+        {
+            if(system("rm -f ./simulation_files/motorVelocity/motorVelocity_G*.txt") == -1)
+            {
+                cerr << "TRAIN ERROR:\tFailed to remove useless files" << endl;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////
 
 		population.epoch();        
 
-        if(generationFinalChampionFitness < generationChampionFitness)
+        if(finalChampionFitness < generationChampionFitness)
         {
-            generationFinalChampion = g;
-            populationFinalChampion = generationChampion;
-            generationFinalChampionFitness = generationChampionFitness;
+            finalChampionGeneration = g;
+            finalChampionPopulation = generationChampionPopulation;
+            finalChampionFitness = generationChampionFitness;
         }
 	}
 
-    stringstream cp_champion_filename;
+    //////////////////////////// SAVE CHAMPION FILES /////////////////////////////////
+
+    stringstream cp_champion_organism, cp_champion_movement, cp_champion_motorVelocity;
     
-    cp_champion_filename << "cp .NEAT_organisms/Champion_G" << generationFinalChampion << "P" << populationFinalChampion << ".txt ./NEAT_organisms/Champion.txt";
-    
-    if(system((char*)cp_champion_filename.str().c_str()) == -1)
+    cp_champion_organism << "cp NEAT_organisms/Champion_G" << finalChampionGeneration << "P" << finalChampionPopulation << ".txt ./NEAT_organisms/Champion.txt";
+    cp_champion_movement << "cp simulation_files/movement/Champion_G" << finalChampionGeneration << "P" << finalChampionPopulation << ".txt ./simulation_files/movement/Champion.txt";
+    cp_champion_motorVelocity << "cp simulation_files/motorVelocity/Champion_G" << finalChampionGeneration << "P" << finalChampionPopulation << ".txt ./simulation_files/motorVelocity/Champion.txt";
+        
+    if(system((char*)cp_champion_organism.str().c_str()) == -1)
     {
         cerr << "TRAIN ERROR:\tFailed to copy the Champion Organism File" << endl;
-    }	
+    }
 
-    clog << "Fitness champion: " << population.fitness_champion << "\n\n"<< endl;
+    if(system((char*)cp_champion_movement.str().c_str()) == -1)
+    {
+        cerr << "TRAIN ERROR:\tFailed to copy the Champion Movement File" << endl;
+    }
+
+    if(system((char*)cp_champion_motorVelocity.str().c_str()) == -1)
+    {
+        cerr << "TRAIN ERROR:\tFailed to copy the Champion Motor Velocity File" << endl;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    clog << "Fitness champion: " << finalChampionFitness << "\n\n"<< endl;
 
 	delete(vrep);
 	delete(simfile);

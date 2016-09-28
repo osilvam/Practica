@@ -5,6 +5,7 @@ if ! [[ -d RobotLib ]]
 	cd RobotLib; make; sudo make install; cd ..;
 else
 	cd RobotLib
+	git remote update
 	LOCAL=$(git rev-parse @)
 	REMOTE=$(git rev-parse @{u})
 	if [ $LOCAL = $REMOTE ]
@@ -13,7 +14,7 @@ else
 		cd ..
 	else
 		cd ..
-		rm -f -R /RobotLib
+		rm -f -R RobotLib
 		echo "Downloading RobotLib library from git repository"
 		git clone https://github.com/osilvam/RobotLib.git
 		cd RobotLib; make; sudo make install; cd ..;
@@ -35,6 +36,7 @@ if ! [[ -d NEAT ]]
 	cd NEAT; make; sudo make install; cd ..;
 else
 	cd NEAT
+	git remote update
 	LOCAL=$(git rev-parse @)
 	REMOTE=$(git rev-parse @{u})
 	if [ $LOCAL = $REMOTE ]
