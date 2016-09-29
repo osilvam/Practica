@@ -29,7 +29,7 @@ void Fitness::measuringValues(vector < double > position, double rightVel, doubl
 
 double Fitness::calculateFitness()
 {
-	if(stdDesviation(robot_rightVel) < 2 && stdDesviation(robot_leftVel) < 2)
+	if(stdDesviation(robot_rightVel) < 0.5 && stdDesviation(robot_leftVel) < 0.5)
 	{
 		cerr << "FITNESS ERROR:\tNAVIGATION WITHOUT DIRECTION CHANGES" << endl;
 		fitness = FAILED_FITNESS;

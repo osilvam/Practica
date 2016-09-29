@@ -51,12 +51,6 @@ int main(int argc, char* argv[])
     vrep->addCollisionObject(rueda2);
     vector < CollisionObject * > structure = {chasis, rueda1, rueda2};
 
-    CollisionObject * foot1 = new CollisionObject((char*)"Collision_MODI_4#");
-    CollisionObject * foot2 = new CollisionObject((char*)"Collision_MODI_5#");
-    vrep->addCollisionObject(foot1);
-    vrep->addCollisionObject(foot2);
-    vector < CollisionObject * > foots = {foot1, foot2};
-
     vector < Object * > cubes;
 
     // Set random position of Obstacles
@@ -223,7 +217,7 @@ int main(int argc, char* argv[])
 
                     fitness->measuringValues(position, rightVel, leftVel, vrep->readCollision(structure));
 
-                    if (!vrep->readCollision(foots))
+                    if (abs(orientation.at(0)) > 0.78 || abs(orientation.at(1)) > 0.78)
                     {
                         flag_times++;
                         if(flag_times > 10) flag = false;
