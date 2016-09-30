@@ -1,11 +1,11 @@
-EXPERIMENTOPC=(MODI_raw MODI_raw_F2 MODI_raw_F3 MODI_retina MODI_retina_F2 MODI_retina_F3)
+EXPERIMENTOPC=(MODI_raw_F1 MODI_raw_F2 MODI_raw_F3 MODI_retina_F1 MODI_retina_F2 MODI_retina_F3)
 
 echo Escriba el numero del experimento que desea realizar
 echo Opciones:
-echo -e ' \t ' 1.- MODI_raw
+echo -e ' \t ' 1.- MODI_raw_F1
 echo -e ' \t ' 2.- MODI_raw_F2
 echo -e ' \t ' 3.- MODI_raw_F3
-echo -e ' \t ' 4.- MODI_retina
+echo -e ' \t ' 4.- MODI_retina_F1
 echo -e ' \t ' 5.- MODI_retina_F2
 echo -e ' \t ' 6.- MODI_retina_F3
 read EXPERIMENT
@@ -65,4 +65,3 @@ sleep 2
 
 kill -9 $PIDS
 
-sudo poweroff

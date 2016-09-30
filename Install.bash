@@ -66,9 +66,9 @@ else
 	echo "Opencv is already installed"
 fi
 
-cd MODI_raw; make; cd ..;
+cd MODI_raw_F1; make; cd ..;
 cd MODI_raw_F2; make; cd ..;
 cd MODI_raw_F3; make; cd ..;
-cd MODI_retina; make; cd ..;
+cd MODI_retina_F1; make; cd ..;
 cd MODI_retina_F2; make; cd ..;
 cd MODI_retina_F3; make; cd ..;

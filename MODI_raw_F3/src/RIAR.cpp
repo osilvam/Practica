@@ -223,33 +223,31 @@ int main(int argc, char* argv[])
             gettimeofday(&tv2, NULL);
             long int simulationtime = ((tv2.tv_sec - tv1.tv_sec)*1000000L + tv2.tv_usec) - tv1.tv_usec;   
 
-            simfile->closeRobotMovementFile();
-            simfile->closeRobotMotorVelocityFile();  
-
-            if (flag)
-            {                
-                population.organisms.at(p).fitness = fitness->calculateFitness();             
-                simfile->addFileResults(fitness->getFitness(), g, p);
-
-                clog << "Fitness:\t" << fitness->getFitness() << endl;
-                clog << "Distance:\t" << fitness->getDistance() << endl;
-                clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl;
-                clog << endl;            
-
-                message2 << "FITNESS : " << fitness->getFitness();
-                vrep->addStatusbarMessage((char*)message2.str().c_str());
-
-                if(generationChampionFitness < fitness->getFitness())
-                {
-                    generationChampionPopulation = p;
-                    generationChampionFitness = fitness->getFitness();
-                }
-            }
-            else
-            {
+            if (!flag)
+            { 
                 clog << "OVERTURNING! The simulation has stopped" << endl;
                 population.organisms.at(p).fitness = FAILED_FITNESS;
-            }                
+            }
+
+            simfile->closeRobotMovementFile();
+            simfile->closeRobotMotorVelocityFile();  
+            
+            population.organisms.at(p).fitness = fitness->calculateFitness();             
+            simfile->addFileResults(fitness->getFitness(), g, p);
+
+            clog << "Fitness:\t" << fitness->getFitness() << endl;
+            clog << "Distance:\t" << fitness->getDistance() << endl;
+            clog << "Tiempo de simulación:\t" << (double)simulationtime/1000000 << endl;
+            clog << endl;            
+
+            message2 << "FITNESS : " << fitness->getFitness();
+            vrep->addStatusbarMessage((char*)message2.str().c_str());
+
+            if(generationChampionFitness < fitness->getFitness())
+            {
+                generationChampionPopulation = p;
+                generationChampionFitness = fitness->getFitness();
+            }               
 		}
 
         simfile->addFileChampion(generationChampionFitness, g, generationChampionPopulation);
