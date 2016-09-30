@@ -34,7 +34,7 @@ using namespace ANN_USM;
 #define TIME_INIT_MEASURING 1000000 // microseconds
 
 #define DELTA_TIME 50000 // microseconds
-#define EXECUTION_TIME 15000
+#define EXECUTION_TIME 25000
 
 #define MAX_VEL 8 //rad/s
 #define MIN_VEL 0 //rad/s

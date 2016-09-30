@@ -16,7 +16,6 @@
 #include "CalcFunctions.hpp"
 #include "Fitness.hpp"
 #include "SimFiles.hpp"
-#include "Retina.hpp"
 //#include <typeinfo>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -34,7 +33,7 @@ using namespace ANN_USM;
 #define TIME_INIT_MEASURING 1000000 // microseconds
 
 #define DELTA_TIME 50000 // microseconds
-#define EXECUTION_TIME 25000
+#define EXECUTION_TIME 15000
 
 #define MAX_VEL 8 //rad/s
 #define MIN_VEL 0 //rad/s
